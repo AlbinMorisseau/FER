@@ -1,0 +1,84 @@
+# ==========================================
+# EXPERIMENT
+# ==========================================
+experiment:
+  name: "resnet50_fine_tune_all"
+  project: "emotion_recognition"
+  seed: 42
+
+# ==========================================
+# DATA
+# ==========================================
+data:
+  data_dir: "data/aligned"
+  batch_size: 32
+  num_workers: 4
+  img_size: 224
+  use_weighted_sampler: true
+
+# ==========================================
+# MODEL
+# ==========================================
+model:
+  name: "resnet50"
+  num_classes: 7
+  dropout: 0.5
+
+# ==========================================
+# TRAINING
+# ==========================================
+training:
+  epochs: 50
+
+# ==========================================
+# REGULARIZATION
+# ==========================================
+regularization:
+  label_smoothing: 0.1
+
+  mixup:
+    alpha: 0.2
+    prob: 1.0
+
+  ema:
+    enabled: false
+    decay: 0.999
+
+# ==========================================
+# OPTIMIZATION
+# ==========================================
+optimizer:
+  name: "adam"
+  weight_decay: 0.0001
+
+scheduler:
+  name: "plateau"
+  mode: "min"
+  min_factor: 0.1
+  patience: 5
+
+# ==========================================
+# TRANSFER LEARNING
+# ==========================================
+transfer:
+  mode: "freeze"
+  freeze_level: "partial"
+  freeze_epochs: 50
+  backbone_lr: 0.00001
+  head_lr: 0.0001
+
+# ==========================================
+# EARLY STOPPING
+# ==========================================
+early_stopping:
+  patience: 10
+  min_delta: 0.00
+  monitor: "val/f1"
+
+# ==========================================
+# LOGGING
+# ==========================================
+logging:
+  log_pr_curves: true
+  log_topk: true
+  log_tta: true

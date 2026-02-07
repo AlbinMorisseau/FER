@@ -1,0 +1,56 @@
+program: src/training/train.py
+command:
+  - ${env}
+  - python
+  - "-m"
+  - "src.training.train"
+  - "--config"
+  - "configs/config_sweep_resnet_2.yaml"
+
+method: bayes 
+
+metric:
+  name: val/loss
+  goal: minimize
+
+early_terminate:
+  type: hyperband
+  min_iter: 5   
+  eta: 2           
+
+parameters:
+
+  model.dropout:
+    distribution: uniform
+    min: 0.0
+    max: 0.5
+
+  transfer.backbone_lr:
+    distribution: log_uniform_values
+    min: 0.00001
+    max: 0.001
+
+  transfer.head_lr:
+    distribution: log_uniform_values
+    min: 0.0001
+    max: 0.05
+  
+  optimizer.weight_decay:
+    distribution: uniform
+    min: 0.0
+    max: 0.1
+
+  regularization.label_smoothing:
+    distribution: uniform
+    min: 0.0
+    max: 0.2
+
+  regularization.mixup.alpha:
+    distribution: uniform
+    min: 0.0
+    max: 1.0
+
+  regularization.mixup.prob:
+    distribution: uniform
+    min: 0.0
+    max: 1.0

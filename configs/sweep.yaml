@@ -1,0 +1,88 @@
+program: src/training/train.py
+command:
+  - ${env}
+  - python
+  - "-m"
+  - "src.training.train"
+  - "--config"
+  - "configs/config_sweep.yaml"
+
+method: bayes 
+
+metric:
+  name: val/loss  
+  goal: minimize 
+
+early_terminate:
+  type: hyperband
+  min_iter: 6      
+  eta: 2           
+
+parameters:
+
+  model.dropout:
+    distribution: uniform
+    min: 0.0
+    max: 0.5
+
+  transfer.backbone_lr:
+    distribution: log_uniform_values
+    min: 0.00001
+    max: 0.001
+
+  transfer.head_lr:
+    distribution: log_uniform_values
+    min: 0.0001
+    max: 0.05
+  
+  optimizer.name:
+    distribution: categorical
+    values: [adam, sgd]
+
+  optimizer.weight_decay:
+    distribution: uniform
+    min: 0.0
+    max: 0.1
+
+  optimizer.momentum:
+    distribution: uniform
+    min: 0.6
+    max: 0.95
+
+  scheduler.name:
+    distribution: categorical
+    values: [onecycle, cosine, plateau]
+
+  scheduler.max_lr_factor:
+    distribution: uniform
+    min: 1.0
+    max: 10.0
+
+  scheduler.patience:
+    distribution: int_uniform
+    min: 2
+    max: 8
+
+  scheduler.factor:
+    distribution: uniform
+    min: 0.1
+    max: 0.8
+
+  data.batch_size:
+    distribution: categorical
+    values: [16, 32]
+
+  regularization.label_smoothing:
+    distribution: uniform
+    min: 0.0
+    max: 0.2
+
+  regularization.mixup.alpha:
+    distribution: uniform
+    min: 0.0
+    max: 1.0
+
+  transfer.freeze_epochs:
+    distribution: int_uniform
+    min: 0
+    max: 5

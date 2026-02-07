@@ -1,0 +1,95 @@
+# ==========================================
+# EXPERIMENT
+# ==========================================
+experiment:
+  name: "convnext_transfer_only"
+  project: "emotion_recognition"
+  seed: 42
+
+# ==========================================
+# DATA
+# ==========================================
+data:
+  data_dir: "data/aligned"
+  batch_size: 32
+  num_workers: 4
+  img_size: 224
+  use_weighted_sampler: true
+
+# ==========================================
+# MODEL
+# ==========================================
+model:
+  name: "convnext_tiny"
+  num_classes: 7
+  # On réduit un peu le dropout car on n'entraîne que peu de paramètres (la tête)
+  # Trop de dropout sur juste une couche linéaire peut ralentir l'apprentissage.
+  dropout: 0.0
+
+# ==========================================
+# TRAINING
+# ==========================================
+training:
+  epochs: 50
+
+# ==========================================
+# REGULARIZATION
+# ==========================================
+regularization:
+  label_smoothing: 0.0
+  
+  # Pour du transfer learning pur, le Mixup peut être difficile à apprendre
+  # pour une simple tête linéaire. On peut le réduire ou le désactiver.
+  # Ici je le réduis un peu.
+  mixup:
+    alpha: 0.0
+    prob: 0.5
+
+  ema:
+    enabled: false
+    decay: 0.999
+
+# ==========================================
+# OPTIMIZATION
+# ==========================================
+optimizer:
+  name: "adam"
+  # Weight decay standard pour ne pas trop contraindre la tête
+  weight_decay: 0.001 
+
+scheduler:
+  # 'plateau' est excellent pour le transfer learning pur.
+  # Il réduit le LR seulement quand le modèle arrête de progresser.
+  name: "plateau"
+  patience: 3
+  factor: 0.2
+
+# ==========================================
+# TRANSFER LEARNING (SECTION CRITIQUE)
+# ==========================================
+transfer:
+  mode: "freeze"
+  # Doit être égal ou supérieur au nombre total d'epochs (50)
+  freeze_epochs: 50
+  
+  # CRUCIAL : 0.0 signifie que les poids du backbone ne seront jamais mis à jour
+  backbone_lr: 0.0 
+  
+  # On peut être agressif sur la tête (standard Adam LR = 1e-3)
+  head_lr: 0.001
+
+# ==========================================
+# EARLY STOPPING
+# ==========================================
+early_stopping:
+  patience: 6
+  min_delta: 0.00
+  monitor: "val/f1"
+
+# ==========================================
+# LOGGING
+# ==========================================
+logging:
+  log_pr_curves: true
+  log_topk: true
+  log_tta: true

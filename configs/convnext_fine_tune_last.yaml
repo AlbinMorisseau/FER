@@ -1,0 +1,89 @@
+# ==========================================
+# EXPERIMENT
+# ==========================================
+experiment:
+  name: "convnext_fine_tune_last"
+  project: "emotion_recognition"
+  seed: 42
+
+# ==========================================
+# DATA
+# ==========================================
+data:
+  data_dir: "data/aligned"
+  batch_size: 32
+  num_workers: 4
+  img_size: 224
+  use_weighted_sampler: true
+
+# ==========================================
+# MODEL
+# ==========================================
+model:
+  name: "convnext_tiny"
+  num_classes: 7
+  dropout: 0.5  
+
+# ==========================================
+# TRAINING
+# ==========================================
+training:
+  epochs: 50
+
+# ==========================================
+# REGULARIZATION
+# ==========================================
+regularization:
+  label_smoothing: 0.1
+
+  mixup:
+    alpha: 0.4
+    prob: 0.5
+
+  ema:
+    enabled: true
+    decay: 0.999
+
+# ==========================================
+# OPTIMIZATION
+# ==========================================
+optimizer:
+  name: "adam"
+  weight_decay: 0.05 # Réduit car le freeze agit déjà comme régularisateur
+
+scheduler:
+  name: "onecycle"
+  max_lr_factor: 10.0 # Standard OneCycle
+
+# ==========================================
+# TRANSFER LEARNING (LE COEUR DU CHANGEMENT)
+# ==========================================
+transfer:
+  mode: "freeze"       # Active le mode freeze
+  freeze_level: "partial" # Active notre fonction custom (Backbone gelé sauf fin)
+  
+  # Si tu mets freeze_epochs = training.epochs, le bas du réseau ne bougera jamais.
+  # C'est la stratégie pure "Partial Freeze".
+  freeze_epochs: 50    
+  
+  # Ce LR s'appliquera UNIQUEMENT au Stage 4 dégelé
+  backbone_lr: 1.0e-4  
+  
+  # Ce LR s'appliquera à la Tête (Classifier)
+  head_lr: 2.0e-3      
+
+# ==========================================
+# EARLY STOPPING
+# ==========================================
+early_stopping:
+  patience: 12  # Un peu plus patient car la convergence peut être plus lente au début
+  min_delta: 0.00
+  monitor: "val/f1"
+
+# ==========================================
+# LOGGING
+# ==========================================
+logging:
+  log_pr_curves: true
+  log_topk: true
+  log_tta: true # Test Time Augmentation (toujours bon pour gagner 0.5-1%)
